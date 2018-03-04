@@ -129,7 +129,7 @@ bool GetLigthIsDark() {
 
     // If resistance of photocell is greater than the dark
     // threshold setting, turn the LED on.
-    if (lightR >= DARK_THRESHOLD) {
+    if (lightV >= 0.1) {
       digitalWrite(LED_PIN, HIGH);
       isDark = false;
     }
