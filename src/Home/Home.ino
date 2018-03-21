@@ -1,9 +1,10 @@
-#include <Time.h>
-#include <TimeAlarms.h>
+ 
 
 #define TIME_MSG_LEN  11   // time sync to PC is HEADER followed by unix time_t as ten ascii digits
 #define TIME_HEADER  255   // Header tag for serial time sync message
- 
+
+const int Door1 = 2;
+
 const int AlerttPin1 = 8;
 const int AlerttPin2 = 11;
 const int AlerttPin3 = 12;
@@ -21,31 +22,33 @@ const float DARK_THRESHOLD = 10000.0;
 
 
 int pirSensor1 = 7;
-
+int Door1Close = 1;
 int pirSensor1Count = 0;
 int pirValue = 0;
 int DetectedTrueCount = 0;
 int DetectedFalseCount = 0;
+
+
 void setup() {
 
   pinMode(AlerttPin1, OUTPUT); // Sets the trigPin as an Output
   pinMode(AlerttPin2, OUTPUT); // Sets the trigPin as an Output
   pinMode(AlerttPin3, OUTPUT); // Sets the trigPin as an Output
+  pinMode(LED_PIN, OUTPUT);
+
   pinMode(pirSensor1, INPUT);
   pinMode(LIGHT_PIN, INPUT);
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(Door1, INPUT_PULLUP); // Door1
   //setTime(7,9,0,4,3,18); // set time to Saturday 8:29:00am Jan 1 2011
 
   Serial.begin(9600);
 }
 
-
-
-
 void loop() {
 
   pirValue = digitalRead(pirSensor1);
-
+  Door1Close = digitalRead(Door1);
+  
   if (pirValue > 0) {
     //digitalWrite(AlerttPin3, LOW);
     DetectedTrueCount++;
@@ -55,27 +58,18 @@ void loop() {
     DetectedFalseCount++;
   }
 
-  Serial.print(pirValue);
-  Serial.print("-");
-  Serial.print(DetectedTrueCount);
-  Serial.print("-");
-  Serial.print(DetectedFalseCount);
+  Serial.print(Door1Close);
   Serial.print("-");
   Serial.println("-");
 
-
-  if (DetectedTrueCount  > 10) {
-    if (GetLigthIsDark() == true) {
-      digitalWrite(AlerttPin3, LOW);
+  if (DetectedTrueCount  > 3) {
+     if(Door1Close == 0){
+      digitalWrite(AlerttPin1, HIGH);
       DetectedTrueCount = 0;
       DetectedFalseCount = 0;
-      delay(60050);
-    }
-      digitalWrite(AlerttPin1, HIGH);
-      delay(1050);
+      delay(8050);
+     }
   }
-
-
 
   if (DetectedFalseCount  > 2) {
     digitalWrite(AlerttPin3, HIGH);
@@ -86,24 +80,17 @@ void loop() {
   }
 
   //digitalClockDisplay();
-  GetLigthIsDark();
+   if (GetLigthIsDark() == true) {
+      digitalWrite(AlerttPin3, LOW);
+      //delay(60050);
+    }
+    
   delay(50);
 
-
-  /*if(step == 1){
-
-    digitalWrite(AlerttPin1, LOW);
-    digitalWrite(AlerttPin2, LOW);
-    digitalWrite(AlerttPin3, LOW);
-    }*/
 }
 
 void digitalClockDisplay()
-{
-  // digital clock display of the time
-  Serial.print(hour());
-  printDigits(minute());
-  printDigits(second());
+{  
   Serial.println();
 }
 void printDigits(int digits)
@@ -142,4 +129,3 @@ bool GetLigthIsDark() {
   }
   return isDark;
 }
-
